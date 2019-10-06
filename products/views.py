@@ -18,7 +18,7 @@ class ProductViewSet(viewsets.ModelViewSet):
             serializer = self.create_serializer_class(data = request_data)
             if serializer.is_valid():
                 obj = serializer.save()
-                context = {"success" : True, "message": _("Product created successfully."), "data": self.list_serializer_class(obj).data}
+                context = {"success" : True, "message": _("Product created successfully."), "data": self.serializer_class(obj).data}
                 return Response(context, status=status.HTTP_200_OK)
             else:
                 context = {"success" : False, "message": _("Failed to create Product."), "error":serializer.errors}
@@ -30,7 +30,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     def list(self, request):
         try:
             obj = self.get_queryset()
-            serializer = self.list_serializer_class(data=obj, many=True)
+            serializer = self.serializer_class(obj, many=True)
             context = {"success" : True, "message": _("List of Products returned successfully."), "data": serializer.data}
             return Response(context, status=status.HTTP_200_OK)
         except Exception as error:
@@ -44,7 +44,7 @@ class ProductViewSet(viewsets.ModelViewSet):
             except Exception as error:
                 context = {"success" : False, "message": _("ID not found."), "error": str(error)}
                 return Response(context, status=status.HTTP_200_OK)
-            serializer = self.list_serializer_class(data=obj)
+            serializer = self.serializer_class(data=obj)
             context = {"success" : True, "message": _("Product details returned successfully."), "data": serializer.data}
             return Response(context, status=status.HTTP_200_OK)
         except Exception as error:
