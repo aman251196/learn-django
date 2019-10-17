@@ -16,6 +16,8 @@ import environ
 env = environ.Env()
 environ.Env.read_env('.env')
 
+from django.utils.log import DEFAULT_LOGGING
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # /home/aman/learn_django/learn-django
@@ -27,9 +29,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'i%eqxwdx$$(%jdwwkog+)f=-9ke&f*26cs@3d855gpf$w-8%7-'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env('DEBUG')
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -87,8 +89,8 @@ DATABASES = {
         'NAME': env('DB_NAME'),
         'USER': env('DB_USER'),
         'PASSWORD': env('DB_PASSWORD'),
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'HOST': env('POSTGRES_HOST'),
+        'PORT': env('POSTGRES_PORT'),
     }
 }
 
@@ -111,6 +113,66 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+LOGGING = {
+    'version' : 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'standard': {
+            'format': '[%(asctime)s] %(name)s: %(levelname)s: %(msg)s'
+        },
+        'django.server': DEFAULT_LOGGING['formatters']['django.server']
+    },
+    'root': {
+        'handlers': ['file_handler', 'console_handler'],
+        'level': 'INFO',
+    },
+    'handlers' : {
+        'file_handler': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': 'logs/app.log',
+            'maxBytes': 5242880,  # 5 MB
+            'backupCount': 5,
+            'formatter': 'standard'
+        },
+        'console_handler': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'stream': 'ext://sys.stderr',
+            'formatter': 'standard'
+        },
+        'django_server_console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'django.server',
+            'level': 'INFO'
+        },
+        'django_server_file': {
+            'formatter': 'django.server',
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': 'logs/app.log',
+            'maxBytes': 5242880,  # 5 MB
+            'backupCount': 5,
+        },
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler',
+        }
+ 
+    },
+    'loggers' : {
+        'django': {
+            'propagate': False,
+            'handlers': ['file_handler', 'console_handler'],
+            'level': 'INFO',
+        },
+        'django.request': {
+            'propagate': False,
+            'handlers': ['django_server_console', 'django_server_file'],
+            'level': 'INFO'
+        }
+    }
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.0/topics/i18n/
